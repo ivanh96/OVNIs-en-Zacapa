@@ -345,10 +345,8 @@ seleccionar:
 	beq salir
 	
 	salir:
-	mov r0,#0
-	mov r3,#0
-	ldmfd sp!,{lr}
-	bx lr
+	mov r7, #1
+	swi 0
 
 .global presionando	
 presionando:
@@ -379,6 +377,16 @@ wait:
 	bne delay
 	pop {pc}
 
+.global wait2
+wait2:
+	push {lr}
+	ldr r0, =constante2
+	ldr r0, [r0]
+	delay2:
+	subs r0, #1
+	bne delay2
+	pop {pc}
+
 .global drawStarship
 
 /*
@@ -389,10 +397,11 @@ wait:
 
 drawStarship:
         push {lr}
-        push {r4-r9}    /* Standrad ABI */  
+        /* Standrad ABI */  
 
         /* Se mueven los parametros a nuevos registros */
-        mov r4, r0 
+	push {r4-r9}
+	mov r4, r0 
         mov r5, r1  
         mov r6, r2  
 		mov r11, r3
@@ -425,7 +434,7 @@ loopy_starship:
         cmp r9, r5
 		ldrgt r0,=starshipPos
         bgt end
-        loopx_cursor:  
+        loopx_starship:  
                 ldr r0,=pixelAddr
                 ldr r0,[r0]
 
@@ -449,7 +458,7 @@ loopy_starship:
 
                 add r8, #1
                 cmp r8, r4
-                blt loopx_cursor
+                blt loopx_starship
 
         /* Barrido en Y */
         ldr r2, =y_starship
@@ -471,24 +480,24 @@ p2:
 	bl GetGpio
 	cmp r0,#1
 	bleq moveDown
-	mov r0,#26
-	bl GetGpio
-	cmp r0,#1
-	bleq shoot
+
 	b p2
 	pop {pc}
 	
 .global moveUp
 moveUp:
 
-	push {lr}
+	push {r0, lr}
 	ldr r0,=starshipPos
-	ldr r0,[r0]
+	ldr r0, [r0]
+	ldr r1, =posYstarship
 	
-	add r0,r0,#10
-	ldr r1,=posYstarship
-	str r0,[r1]
-	b jugar
+	cmp r0, #0
+	strle r0, [r1]
+	beq jugar
+	subne r0, r0, #10
+	strne r0, [r1]
+	bne jugar
 
 	pop {pc}
 
@@ -497,12 +506,17 @@ moveDown:
 
 	push {lr}
 	ldr r0,=starshipPos
-	ldr r0,[r0]
+	ldr r0, [r0]
+	ldr r1, =posYstarship
 	
-	sub r0,r0,#10
-	ldr r1,=posYstarship
-	str r0,[r1]
-	b jugar
+	ldr r3, =finalDown
+	ldr r3, [r3]
+	cmp r0, r3
+	strle r0, [r1]
+	beq jugar
+	addne r0, r0, #10
+	strne r0, [r1]
+	bne jugar
 
 	pop {pc}
 
@@ -535,4 +549,6 @@ x_checkpoint2:
 y_starship:
 	.word 0
 constante: .word 598000000
+constante2: .word 5980000
+finalDown: .word 670
 
