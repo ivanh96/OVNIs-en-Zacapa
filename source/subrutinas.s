@@ -330,7 +330,7 @@ seleccionar:
 	ldr r1,[r1]
 	
 	cmp r0,r1
-	/*bleq jugar*/
+	beq jugar
 	
 	ldr r1,=y2
 	ldr r1,[r1]
@@ -342,7 +342,13 @@ seleccionar:
 	ldr r1,[r1]
 	
 	cmp r0,r1
-	/*bleq salir*/
+	beq salir
+	
+	salir:
+	mov r0,#0
+	mov r3,#0
+	ldmfd sp!,{lr}
+	bx lr
 
 .global presionando	
 presionando:
@@ -356,6 +362,10 @@ p:
 	bl GetGpio
 	cmp r0,#1
 	bleq revisarDown
+	mov r0,#26
+	bl GetGpio
+	cmp r0,#1
+	bleq seleccionar
 	b p
 	pop {pc}
 
@@ -368,10 +378,139 @@ wait:
 	subs r0, #1
 	bne delay
 	pop {pc}
+
+.global drawStarship
+
+/*
+* Esta subrutina dibuja una imagen en 8 bits, obviando el fondo.
+* PARAMETROS: r0 = Width x, r1 = Height y, r2 = direccion de la matriz de pixeles a dibujar, r3 = la posicion y donde inicia a pintar
+*/
+
+
+drawStarship:
+        push {lr}
+        push {r4-r9}    /* Standrad ABI */  
+
+        /* Se mueven los parametros a nuevos registros */
+        mov r4, r0 
+        mov r5, r1  
+        mov r6, r2  
+		mov r11, r3
+		ldr r10,=y_starship
+		str r11,[r10]
+		ldr r10,=starshipPos
+		str r11,[r10]
+        
+        /********* Reset Y **********/
+        ldr r2, =y
+        mov r7, #0
+        str r7, [r2]
+       
+
+        /* Se obtiene la direccion de pantalla */
+        bl getScreenAddr
+        ldr r1,=pixelAddr
+        str r0,[r1]
+                   
+        mov r9, #0      /* Contador */
+
+loopy_starship:
+        /******** Reset X ********/
+        mov r8, #0
+        ldr r7, =x_checkpoint
+        ldr r7, [r7]
+        ldr r1, =x
+        str r7, [r1]
+      
+        cmp r9, r5
+		ldrgt r0,=starshipPos
+        bgt end
+        loopx_cursor:  
+                ldr r0,=pixelAddr
+                ldr r0,[r0]
+
+                ldr r1,=x
+                ldr r1,[r1]
+                
+                ldr r2,=y_starship
+                ldr r2,[r2]
+
+                
+                ldr r3, [r6], #4
+
+                cmp r3, #240    /* Se dibuja solo si el pixel no es rosado magenta */
+                blne pixel
+
+                /* Barrido en X */
+                ldr r1,=x
+                ldr r7,[r1]
+                add r7,#1
+                str r7,[r1]
+
+                add r8, #1
+                cmp r8, r4
+                blt loopx_cursor
+
+        /* Barrido en Y */
+        ldr r2, =y_starship
+        ldr r7, [r2]
+        add r7, #1
+        str r7, [r2]
+        add r9, #1
+       	b loopy_starship
+
+.global presionando2	
+presionando2:
+	push {lr}
+p2:
+	mov r0,#16
+	bl GetGpio
+	cmp r0,#1
+	bleq moveUp
+	mov r0,#20
+	bl GetGpio
+	cmp r0,#1
+	bleq moveDown
+	mov r0,#26
+	bl GetGpio
+	cmp r0,#1
+	bleq shoot
+	b p2
+	pop {pc}
+	
+.global moveUp
+moveUp:
+
+	push {lr}
+	ldr r0,=starshipPos
+	ldr r0,[r0]
+	
+	add r0,r0,#10
+	ldr r1,=posYstarship
+	str r0,[r1]
+	b jugar
+
+	pop {pc}
+
+.global moveDown
+moveDown:
+
+	push {lr}
+	ldr r0,=starshipPos
+	ldr r0,[r0]
+	
+	sub r0,r0,#10
+	ldr r1,=posYstarship
+	str r0,[r1]
+	b jugar
+
+	pop {pc}
+
+
+	
 end:    
         pop {r4-r9}     /* Standard ABI */
         pop {pc}
-
 		
 .data
 .balign 4
@@ -393,7 +532,7 @@ x_cursor:
 	.word 340
 x_checkpoint2:
 	.word 340
-mensaje:
-	.asciz "Soy un boton que sirve"
+y_starship:
+	.word 0
 constante: .word 598000000
 

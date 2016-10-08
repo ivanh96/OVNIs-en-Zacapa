@@ -39,13 +39,13 @@ seleccion:
         bl draw
 
 		
-	ldr r0, =cursorWidth
+	    ldr r0, =cursorWidth
         ldr r0, [r0]
         ldr r1, =cursorHeight
         ldr r1, [r1]
         ldr r2, =cursor
-	ldr r3,=posY
-	ldr r3,[r3]
+	    ldr r3,=posY
+	    ldr r3,[r3]
         bl drawCursor
 		
 		
@@ -57,9 +57,37 @@ seleccion:
 	/*Verifica si los botones han sido presionados*/
 	
 	bl wait
-	bl presionando
+	bl presionando2
 	b loop
+	
+	
+	jugar:
+	
+	    ldr r0, =groundWidth
+        ldr r0, [r0]
+        ldr r1, =groundHeight
+        ldr r1,[r1]
+        ldr r2, =ground
+        bl draw
+		
+		ldr r0, =starshipWidth
+        ldr r0, [r0]
+        ldr r1, =starshipHeight
+        ldr r1, [r1]
+        ldr r2, =starship
+	    ldr r3,=posYstarship
+	    ldr r3,[r3]
+        bl drawStarship
 
+	loop2:
+
+	
+	/*Verifica si los botones han sido presionados*/
+	
+	bl wait
+	bl presionando
+	b loop2
+		
 
 	
 	
@@ -74,6 +102,7 @@ end:    mov r7,#1
 .global y2
 .global y3
 .global posY
+.global posYstarship
 
 myloc:
 	.word 0x3F200000
@@ -88,3 +117,7 @@ y2:
 	.word 590
 y3: 
 	.word 666
+starshipPos:
+	.word 0
+posYstarship:
+	.word 400
