@@ -188,12 +188,12 @@ drawCursor:
                    
         mov r9, #0      /* Contador */
 
-loopy_spritey:
+loopy_cursor:
         /******** Reset X ********/
         mov r8, #0
-        ldr r7, =x_checkpoint    
+        ldr r7, =x_checkpoint2
         ldr r7, [r7]
-        ldr r1, =x
+        ldr r1, =x_cursor
         str r7, [r1]
       
         cmp r9, r5
@@ -203,7 +203,7 @@ loopy_spritey:
                 ldr r0,=pixelAddr
                 ldr r0,[r0]
 
-                ldr r1,=x
+                ldr r1,=x_cursor
                 ldr r1,[r1]
                 
                 ldr r2,=y_cursor
@@ -216,7 +216,7 @@ loopy_spritey:
                 blne pixel
 
                 /* Barrido en X */
-                ldr r1,=x
+                ldr r1,=x_cursor
                 ldr r7,[r1]
                 add r7,#1
                 str r7,[r1]
@@ -240,27 +240,6 @@ loopy_spritey:
 * SALIDAS: 1 en r0 si el boton fue presionado, y 0 en r0 si no se presiona
 */
 
-.global boton		
-boton:
-	
-	push {lr}
-	
-    mov r0,#16
-	bl GetGpio
-	cmp r0,#1
-	moveq r1,#1
-
-    mov r0,#20
-	bl GetGpio
-	cmp r0,#1
-	moveq r1,#2
-	
-    mov r0,#26
-	bl GetGpio
-	cmp r0,#1
-	moveq r1,#3
-	
-	pop {pc}
 
 
 
@@ -275,15 +254,31 @@ revisarUp:
 	
 	ldr r1,=y1
 	ldr r1,[r1]
+
+	ldr r3,=y3
+	ldr r3,[r3]
+
+	ldr r4,=y2
+	ldr r4,[r4]
 	
 	cmp r0,r1
 	moveq r0,r3
-	streq r0,[r3]
-	moveq pc,lr
+	streq r0,[r2]
+	beq seleccion
+
+	cmp r0,r4
+	moveq r0,r1
+	streq r0,[r2]
+	beq seleccion
+
+	cmp r0,r3
+	moveq r0,r4
+	streq r0,[r2]
+	beq seleccion
+
+
+	pop {pc}
 	
-	sub r0,r0,#86
-	str r0,[r2]
-	mov pc,lr
 
 	
 	
@@ -296,17 +291,32 @@ revisarDown:
 	
 	ldr r2,=posY
 	
-	ldr r1,=y3
+	ldr r1,=y1
 	ldr r1,[r1]
+
+	ldr r3,=y3
+	ldr r3,[r3]
+
+	ldr r4,=y2
+	ldr r4,[r4]
 	
 	cmp r0,r1
+	moveq r0,r4
+	streq r0,[r2]
+	beq seleccion
+
+	cmp r0,r4
 	moveq r0,r3
-	streq r0,[r3]
-	moveq pc,lr
+	streq r0,[r2]
+	beq seleccion
+
+	cmp r0,r3
+	moveq r0,r1
+	streq r0,[r2]
+	beq seleccion
+
+	pop {pc}
 	
-	add r0,r0,#86
-	str r0,[r2]
-	mov pc,lr
 
 .global seleccionar
 
@@ -333,8 +343,31 @@ seleccionar:
 	
 	cmp r0,r1
 	/*bleq salir*/
-	
 
+.global presionando	
+presionando:
+	push {lr}
+p:
+	mov r0,#16
+	bl GetGpio
+	cmp r0,#1
+	bleq revisarUp
+	mov r0,#20
+	bl GetGpio
+	cmp r0,#1
+	bleq revisarDown
+	b p
+	pop {pc}
+
+.global wait
+wait:
+	push {lr}
+	ldr r0, =constante
+	ldr r0, [r0]
+	delay:
+	subs r0, #1
+	bne delay
+	pop {pc}
 end:    
         pop {r4-r9}     /* Standard ABI */
         pop {pc}
@@ -357,8 +390,10 @@ y_sprite:
 y_cursor:  
 	.word 0
 x_cursor:
-	.word 360
-x_cursor1:
-	.word 530
-
+	.word 340
+x_checkpoint2:
+	.word 340
+mensaje:
+	.asciz "Soy un boton que sirve"
+constante: .word 598000000
 

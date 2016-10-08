@@ -5,7 +5,7 @@
 
  .text
  .balign 4
- .global main
+ .global main, seleccion
 main:
 
 
@@ -30,6 +30,7 @@ main:
 	bl SetGpioFunction
 	
 	
+seleccion:
         ldr r0, =menuWidth
         ldr r0, [r0]
         ldr r1, =menuHeight
@@ -38,15 +39,13 @@ main:
         bl draw
 
 		
-	seleccion:
-	
-        ldr r0, =cursorWidth
+	ldr r0, =cursorWidth
         ldr r0, [r0]
         ldr r1, =cursorHeight
         ldr r1, [r1]
         ldr r2, =cursor
-		ldr r3,=posY
-		ldr r3,[r3]
+	ldr r3,=posY
+	ldr r3,[r3]
         bl drawCursor
 		
 		
@@ -56,24 +55,12 @@ main:
 
 	
 	/*Verifica si los botones han sido presionados*/
-		
-	bl boton
 	
-	cmp  r1,#1
-	bleq revisarUp
-	beq seleccion
-	
-	cmp r1,#2
-	bleq revisarDown
-	beq seleccion
-	
-	cmp r1,#3
-	bleq seleccionar
-	
+	bl wait
+	bl presionando
 	b loop
 
 
-	
 	
 	
 		
@@ -84,13 +71,15 @@ end:    mov r7,#1
 .global myloc
 .global cursorPos
 .global y1
+.global y2
 .global y3
 .global posY
 
 myloc:
 	.word 0x3F200000
 posY:
-	.word 360
+	.word 504
+
 cursorPos:
 	.word 0
 y1:
