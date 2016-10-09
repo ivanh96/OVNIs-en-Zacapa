@@ -2,7 +2,7 @@
 /*Nombres: Diego Soler         Carne: 15415*/
 /*         Marlon Hernandez    Carne: 15177*/
 /*           LABORATORIO 3  -  Subrutinas */
-       /*Subrutinas del Laboratorio 3*/
+/*         Subrutinas del Laboratorio 3    */
 
 .global draw
 
@@ -472,6 +472,26 @@ loopy_starship:
 presionando2:
 	push {lr}
 p2:
+
+	push {r0-r3}
+	ldr r0,=x_checkpoint3
+	ldr r0,[r0]
+	ldr r1,=x_ovni
+	sub r0,r0,#5
+	str r0,[r1]
+	ldr r2=x_checkpoint3
+	str r0,[r2]
+	pop {r0-r3}
+	
+	ldr r0, =ovniWidth
+    ldr r0, [r0]
+    ldr r1, =ovniHeight
+    ldr r1, [r1]
+    ldr r2, =ovni
+	ldr r3,=posYovni
+	ldr r3,[r3]
+	bl drawOvni
+	
 	mov r0,#16
 	bl GetGpio
 	cmp r0,#1
@@ -480,7 +500,7 @@ p2:
 	bl GetGpio
 	cmp r0,#1
 	bleq moveDown
-
+    
 	b p2
 	pop {pc}
 	
@@ -520,7 +540,85 @@ moveDown:
 
 	pop {pc}
 
+.global drawOvni
 
+/*
+* Esta subrutina dibuja una imagen en 8 bits, obviando el fondo.
+* PARAMETROS: r0 = Width x, r1 = Height y, r2 = direccion de la matriz de pixeles a dibujar, r3 = la posicion y donde inicia a pintar
+*/
+
+
+drawOvni:
+        push {lr}
+        /* Standrad ABI */  
+
+        /* Se mueven los parametros a nuevos registros */
+	push {r4-r9}
+	mov r4, r0 
+        mov r5, r1  
+        mov r6, r2  
+		mov r11, r3
+		ldr r10,=y_ovni
+		str r11,[r10]
+		ldr r10,=ovniPos
+		str r11,[r10]
+        
+        /********* Reset Y **********/
+        ldr r2, =y
+        mov r7, #0
+        str r7, [r2]
+       
+
+        /* Se obtiene la direccion de pantalla */
+        bl getScreenAddr
+        ldr r1,=pixelAddr
+        str r0,[r1]
+                   
+        mov r9, #0      /* Contador */
+
+loopy_ovni:
+        /******** Reset X ********/
+        mov r8, #0
+        ldr r7, =x_checkpoint3
+        ldr r7, [r7]
+        ldr r1, =x_ovni
+        str r7, [r1]
+      
+        cmp r9, r5
+        bgt end
+        loopx_ovni:  
+                ldr r0,=pixelAddr
+                ldr r0,[r0]
+
+                ldr r1,=x_ovni
+                ldr r1,[r1]
+                
+                ldr r2,=y_ovni
+                ldr r2,[r2]
+
+                
+                ldr r3, [r6], #4
+
+                cmp r3, #240    /* Se dibuja solo si el pixel no es rosado magenta */
+                blne pixel
+
+                /* Barrido en X */
+                ldr r1,=x_ovni
+                ldr r7,[r1]
+                add r7,#1
+                str r7,[r1]
+
+                add r8, #1
+                cmp r8, r4
+                blt loopx_ovni
+
+        /* Barrido en Y */
+        ldr r2, =y_ovni
+        ldr r7, [r2]
+        add r7, #1
+        str r7, [r2]
+        add r9, #1
+       	b loopy_ovni
 	
 end:    
         pop {r4-r9}     /* Standard ABI */
@@ -548,7 +646,15 @@ x_checkpoint2:
 	.word 340
 y_starship:
 	.word 0
-constante: .word 598000000
-constante2: .word 5980000
-finalDown: .word 670
-
+x_checkpoint3:
+	.word 40
+constante: 
+	.word 598000000
+constante2: 
+	.word 5980000
+finalDown: 
+	.word 670
+x_ovni:
+	.word 40
+y_ovni:
+	.word 0

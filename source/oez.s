@@ -86,6 +86,7 @@ seleccion:
 	
 	bl wait2
 	bl presionando2
+	
 	b loop2
 		
 
@@ -104,6 +105,8 @@ end:    mov r7,#1
 .global posY
 .global posYstarship
 .global starshipPos
+.global posYovni
+.global ovniPos
 
 myloc:
 	.word 0x3F200000
@@ -122,3 +125,7 @@ starshipPos:
 	.word 0
 posYstarship:
 	.word 400
+ovniPos:
+	.word 0
+posYovni:
+	.word 300
