@@ -647,7 +647,7 @@ x_checkpoint2:
 y_starship:
 	.word 0
 x_checkpoint3:
-	.word 40
+	.word 1202
 constante: 
 	.word 598000000
 constante2: 
@@ -655,6 +655,6 @@ constante2:
 finalDown: 
 	.word 670
 x_ovni:
-	.word 40
+	.word 1202
 y_ovni:
 	.word 0
